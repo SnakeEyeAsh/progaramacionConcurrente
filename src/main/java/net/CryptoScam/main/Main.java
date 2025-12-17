@@ -2,6 +2,7 @@ package net.CryptoScam.main;
 
 import net.CryptoScam.Objetos.Cajero;
 import net.CryptoScam.Objetos.CajeroCallable;
+import net.CryptoScam.Objetos.CajeroRunable;
 import net.CryptoScam.Objetos.CuentaCrypto;
 import org.w3c.dom.*;
 
@@ -14,7 +15,7 @@ import java.util.concurrent.*;
 public class Main {
     public static void main(String[] args) {
 
-        CuentaCrypto cuenta = new CuentaCrypto(1000.0);
+        CuentaCrypto cuenta = new CuentaCrypto(10000.0);
 
         ejecutarCallable(cuenta);
         Queue<Integer> cola = cargar();
@@ -22,6 +23,8 @@ public class Main {
 
 
     }
+
+
     public static void ejecutarCallable(CuentaCrypto cuenta){
         //creamos los atributos
         Queue<Integer> cola = cargar();
@@ -31,25 +34,26 @@ public class Main {
         //creamos los hiloscon callable
         Callable<String> cajero1 = new CajeroCallable(cuenta, "Caixa", true, 550);
         Callable<String> cajero2 = new CajeroCallable(cuenta, "BBVA", false, 750);
-        Callable<String> cajero3 = new CajeroCallable(cuenta, "Santander", false, 250);
-        Callable<String> cajero4 = new CajeroCallable(cuenta, "Caixa 2", true, 350);
+        Runnable cajero3 = new CajeroRunable(cuenta, "Santander", false, 250);
+        Runnable cajero4 = new CajeroRunable(cuenta, "Caixa 2", true, 500);
 
         listado.add(poolHilos.submit(cajero1));
         listado.add(poolHilos.submit(cajero2));
-        listado.add(poolHilos.submit(cajero3));
-        listado.add(poolHilos.submit(cajero4));
+        poolHilos.submit(cajero3);
+        poolHilos.submit(cajero4);
 
 
         try {
             if (poolHilos.awaitTermination(1, TimeUnit.MINUTES)) {
+
                 System.out.println("Todos los hilos terminaron");
+
                 for(int i = 0; i< listado.size();i++){
+
                     Future<String> datos = listado.get(i);
-                    try{
-                        String resultado =datos.get();
+                    try {
+                        String resultado = datos.get();
                         System.out.println(resultado);
-
-
                     }catch(Exception e){
                         e.printStackTrace();
                     }
@@ -65,6 +69,7 @@ public class Main {
 
         System.out.println("Dinero " + cuenta.consultar());
     }
+
     public static Queue<Integer> cargar(){
         Queue<Integer> cola = new ArrayDeque<>();
         try{
@@ -90,9 +95,6 @@ public class Main {
 
                 }
             }
-
-
-
 
         }catch(Exception e){
             e.getMessage();
